@@ -25,7 +25,6 @@ class CountriesDataFrame:
         Create DataFrame with json previouly designed
         '''
         self.dt = pd.DataFrame(data=self.get_records(), columns=['Region', 'City Name', 'Language', 'Time'])
-        print(self.dt)
 
 
     def to_sql(self):
