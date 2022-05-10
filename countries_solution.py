@@ -10,6 +10,9 @@ class CountriesDataFrame:
 
 
     def get_countries(self):
+        '''
+        Get all countries by a service
+        '''
         json_response = ''
         r = requests.get(url='https://restcountries.com/v3.1/all')
         if(r.status_code == 200):
@@ -18,10 +21,17 @@ class CountriesDataFrame:
 
     
     def to_dt(self):
+        '''
+        Create DataFrame with json previouly designed
+        '''
         self.dt = pd.DataFrame(data=self.get_records(), columns=['Region', 'City Name', 'Language', 'Time'])
+        print(self.dt)
 
 
     def to_sql(self):
+        '''
+        Export DataFrame to sql table in sqlite
+        '''
         conn = sqlite3.connect('restdb')
         c = conn.cursor()
         c.execute('CREATE TABLE IF NOT EXISTS countries (region text, city_name text, language text, process_time text)')
@@ -37,17 +47,26 @@ class CountriesDataFrame:
 
 
     def to_json(self):
+        '''
+        Export DataFrame to json file
+        '''
         self.dt.to_json(path_or_buf='./data.json', orient='table')
 
 
     def hash_sha1(self, enc):
+        '''
+        Get the hash of string
+        '''
         return (hashlib.sha1(enc.encode())).hexdigest()
 
 
     def get_records(self):
+        '''
+        Get json to send it to DataFrame
+        '''
         ob_records = list()
-        stime = time.time() * 1000
         for i in self.json_str:
+            stime = time.time()
             ob_dict = [
                 i['region'] if 'region' in i else '',
                 i['name']['common'] if 'name' in i else '',
@@ -55,10 +74,25 @@ class CountriesDataFrame:
                 ''
             ]
             ob_dict[2] = self.hash_sha1(ob_dict[2])
-            ftime = (time.time() * 1000) - stime
-            ob_dict[3] = str('{}ms').format(round(ftime,2))
+            ftime = (time.time() - stime) * 1000
+            ob_dict[3] = ftime
             ob_records.append(ob_dict)
         return ob_records
+
+    
+    def get_time(self):
+        '''
+        Get time info of the Time column
+        '''
+        sum_dt = self.dt['Time'].sum()
+        min_dt = self.dt['Time'].min()
+        max_dt = self.dt['Time'].max()
+        mean_dt = self.dt['Time'].mean()
+
+        print('Total {}'.format(sum_dt))
+        print('Minimo {}'.format(min_dt))
+        print('Maximo {}'.format(max_dt))
+        print('Promedio {}'.format(mean_dt))
         
 
 if __name__ == '__main__':
@@ -67,3 +101,4 @@ if __name__ == '__main__':
     countries_dt.to_dt()
     countries_dt.to_sql()
     countries_dt.to_json()
+    countries_dt.get_time()
